@@ -7,7 +7,6 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import Control.Monad.State.Strict
 import Control.Monad
-import Control.DeepSeq (deepseq)
 
 
 type OpApply a b = b -> a -> a
@@ -19,7 +18,7 @@ type GraphTraverse vertex acc = State (acc, Set vertex)
 dfsUpdate :: Ord vertex => vertex -> GraphTraverse vertex acc ()
 dfsUpdate v = do
     (acc, checked) <- get
-    Set.insert v checked `seq` acc `seq` put (acc, Set.insert v checked)  
+    Set.insert v checked `seq` acc `seq` put (acc, Set.insert v checked)
 
 dfsAccUpdate :: b -> OpApply acc b -> GraphTraverse vertex acc ()
 dfsAccUpdate el f = do
@@ -30,12 +29,12 @@ dfsGenericMoveMonad :: Ord vertex => vertex -> OpSet vertex edge acc -> Graph ve
 dfsGenericMoveMonad currentVertex (onEnter, onGo, onReturn, onLeave) graph = do
     dfsUpdate currentVertex
     dfsAccUpdate currentVertex onEnter
-    Map.foldrWithKey (\vNext e _ -> do
+    foldM_ (\_ (vNext, e) -> do
             (_, checked) <- get
             Control.Monad.when (Set.notMember vNext checked) $ do
                     dfsAccUpdate e onGo
                     dfsGenericMoveMonad vNext (onEnter, onGo, onReturn, onLeave) graph
-                    dfsAccUpdate e onReturn) (return ()) currentNeighbors
+                    dfsAccUpdate e onReturn) () (Map.toList currentNeighbors)
     dfsAccUpdate currentVertex onLeave
         where
             currentNeighbors =

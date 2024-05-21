@@ -1,6 +1,6 @@
 module DFS where
 
-import Graph ( Graph(edges) )
+import Graph
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -12,8 +12,6 @@ import Control.Monad
 type OpApply a b = b -> a -> a
 
 type OpSet vertex edge acc = (OpApply acc vertex, OpApply acc edge, OpApply acc edge, OpApply acc vertex)
-
-type GraphTraverse vertex acc = State (acc, Set vertex)
 
 dfsUpdate :: Ord vertex => vertex -> GraphTraverse vertex acc ()
 dfsUpdate v = do

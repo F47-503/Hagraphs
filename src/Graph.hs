@@ -2,12 +2,15 @@ module Graph where
 
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Set (Set)
+import Control.Monad.State.Strict
+type GraphTraverse vertex acc = State (acc, Set vertex)
 
 data Graph vertex edge = Graph
     { edges :: Map vertex (Map vertex edge)
     } deriving (Show, Eq)
 
-emptyGraph :: Ord vertex => Graph vertex edge
+emptyGraph :: Graph vertex edge
 emptyGraph = Graph Map.empty
 
 insertEdgeGeneric :: Ord vertex => Map vertex (Map vertex edge) -> (vertex, vertex, edge) -> Map vertex (Map vertex edge)
@@ -31,3 +34,4 @@ orientedGraph pairs = orientedGraphGeneric (map (\(x, y) -> (x, y, 1)) pairs)
 
 notOrientedGraph :: Ord vertex => [(vertex, vertex)] -> Graph vertex Int
 notOrientedGraph pairs = notOrientedGraphGeneric (map (\(x, y) -> (x, y, 1)) pairs)
+

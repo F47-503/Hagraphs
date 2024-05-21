@@ -16,12 +16,12 @@ type OpSet vertex edge acc = (OpApply acc vertex, OpApply acc edge, OpApply acc 
 dfsUpdate :: Ord vertex => vertex -> GraphTraverse vertex acc ()
 dfsUpdate v = do
     (acc, checked) <- get
-    Set.insert v checked `seq` acc `seq` put (acc, Set.insert v checked)
+    put (acc, Set.insert v checked)
 
 dfsAccUpdate :: b -> OpApply acc b -> GraphTraverse vertex acc ()
 dfsAccUpdate el f = do
     (acc, checked) <- get
-    f el acc `seq` checked `seq` put (f el acc, checked)
+    put (f el acc, checked)
 
 dfsGenericMoveMonad :: Ord vertex => vertex -> OpSet vertex edge acc -> Graph vertex edge -> GraphTraverse vertex acc ()
 dfsGenericMoveMonad currentVertex (onEnter, onGo, onReturn, onLeave) graph = do

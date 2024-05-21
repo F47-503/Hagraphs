@@ -27,6 +27,7 @@ library
   exposed-modules:
       DFS
       Graph
+      MinPath
   other-modules:
       Paths_Hagraphs
   autogen-modules:

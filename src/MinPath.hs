@@ -21,7 +21,7 @@ bfsAccUpdate el f = do
     (acc, aggr) <- get
     put (f el acc, aggr)
 
-minPathPop :: (Ord vertex) => MinPathTraverse vertex acc ()
+minPathPop :: MinPathTraverse vertex acc ()
 minPathPop = do
     (acc, (checked, candidates)) <- get
     put (acc, (checked, Map.deleteMin candidates))
@@ -29,25 +29,26 @@ minPathPop = do
 bfsGenericMoveMonad :: Graph Int edge -> (Int -> acc -> acc)-> MinPathTraverse Int acc ()
 bfsGenericMoveMonad graph f = do
     (_, (_, candidates)) <- get
-    bfsAccUpdate (snd $ Map.findMin candidates) f
     if Map.null candidates
         then do
             return ()
         else do
+            bfsAccUpdate (snd $ Map.findMin candidates) f
             foldM_ (\_ (vNext, _) -> do
                     (_, (checked, _)) <- get
                     Control.Monad.when (Set.notMember vNext checked) $ do
-                            minPathUpdate vNext (Set.size checked)
-                            bfsGenericMoveMonad graph f) () (Map.toList (currentNeighbors (Map.findMin candidates)))
+                            minPathUpdate vNext (Set.size checked + 1)
+                            ) () (Map.toList (currentNeighbors (Map.findMin candidates)))
             minPathPop
+            bfsGenericMoveMonad graph f
                 where
                     currentNeighbors minPair =
-                            case Map.lookup (fst minPair) (edges graph) of
+                            case Map.lookup (snd minPair) (edges graph) of
                                 Nothing -> Map.empty
                                 (Just x) -> x
 
 runBfsGeneric :: Int -> (Int -> acc -> acc) -> acc -> Graph Int edge -> (acc, (Set Int, Map Int Int))
-runBfsGeneric v0 f initAcc graph = execState (bfsGenericMoveMonad graph f) (initAcc, (Set.empty, Map.fromList [(0, v0)]))
+runBfsGeneric v0 f initAcc graph = execState (bfsGenericMoveMonad graph f) (initAcc, (Set.singleton v0, Map.fromList [(0, v0)]))
 
 bfsPath :: Int -> Graph Int edge -> [Int]
 bfsPath v0 graph = fst $ runBfsGeneric v0 ad [] graph
